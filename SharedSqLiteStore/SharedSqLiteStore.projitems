@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>397e65ad-4cc7-44e9-814a-61c20321dd35</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SharedSqLiteStore</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ApplicationDbContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzErrorMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzFieldConverters.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzItemMaster.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentDetail.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentDetailComment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentDetailSpecialCharge.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentHeader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentHeaderComment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentHeaderSpecialCharge.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SzShipmentSerial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\szErrorMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentDetailCommentService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentDetailService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentDetailSpecialChargeService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentHeaderCommentService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentHeaderService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentHeaderSpecialChargeService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SzShipmentSerial.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SqLiteDb.cs" />
+  </ItemGroup>
+</Project>

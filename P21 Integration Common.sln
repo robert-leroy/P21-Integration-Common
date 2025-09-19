@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedIngestion", "SharedIngestion\SharedIngestion.shproj", "{3FFDE5AC-D498-4C8B-B479-75C7C2EC5A65}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedSqLiteStore", "SharedSqLiteStore\SharedSqLiteStore.shproj", "{397E65AD-4CC7-44E9-814A-61C20321DD35}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CD57517B-4D66-4A5C-AFDF-259F8AC0E771}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedSqLiteStore\SharedSqLiteStore.projitems*{397e65ad-4cc7-44e9-814a-61c20321dd35}*SharedItemsImports = 13
+		SharedIngestion\SharedIngestion.projitems*{3ffde5ac-d498-4c8b-b479-75c7c2ec5a65}*SharedItemsImports = 13
+	EndGlobalSection
+EndGlobal

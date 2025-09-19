@@ -1,39 +1,18 @@
-# Tisdel SubZero Integration
+# Common Integration Components
 
-## Nightly job to pull data from SubZero and create P21 Invoices
-Each night SubZero posts a file to their FTP server with the previous day's shipment data.  
-This data is pulled down and processed to create invoices in P21. 
-The invoices are created in P21 and the data is stored in the database.
+These are common files used during data integration between two companies.
 
-## General Process
-The application runs as a Windows Console application...
-1. The new files are downloaded from the FTP server
-2. The files are processed and the data is stored in Azure Storage tables (no-sql)
-3. The data is then processed in four steps:
-   - The AP transactions are processed
-   - The Inventory is then updated based on the shipments
-   - The AR transactions are processed
-   - Current customer balances are created and pushed to the FTP server
-   - A summary of the day's transactions is created and emailed to the accounting department
+## Use Case
+The aren't much use except in the context of a specific integration.  However; they might be useful for educational purposes.
 
-## Running the application
-Built into the application is the Epicore Middleware software.  We used both the P21 REST API and .Net Entity API to interface with P21.
-There is a configuration file that can be updated to specify connectivity to other systems:
-- Log4net configuration - where the logging files are stored
-- FTP configuration - how to connect to SubZero
-- APIURL and Password - to Connect with P21 API
-- Email settings (SMTP and addresses) for sending the daily summary
+## Components
+This repository contains the following components:
+- **Data Models**: Standardized data models for data format.  These are defined for use with SqLite in-memory databases.
+- **File Parsing**: A set of files to retrieve the data from FTP servers, parse the data by record type and load it into the SqLite database.
 
-The application also accepts command line arguments to run specific steps of the process.  For example, if you only want to run the AP transactions, you can pass in the argument `RunAP` and the application will only run that step.  Other options include:
-- PostingDate -- Specific the transaction posting date.
-- SourceFile= -- Path to a local Source File to Process.  FTP is not used.
-- RunAP -- Process AP Only
-- RunAR -- Process AR Only
-- RunInventory -- Process Inventory Adjustments Only
-Multiple options can be combined together.
+These are share projects.  If you want to use them, you can include them in your own solution as project references. Add the Shared Project to Other Projects:
+- Right-click on the projects that need to use the shared code and select Add > Reference.
+- In the Reference Manager, go to the Shared Projects section and select the shared project.
 
-## System Architecture
-The entire application is written in C# and runs as a Windows Console application.  It is scheduled to run nightly using Windows Task Scheduler.  
-
-![Architecture Diagram](https://github.com/Trevarrow-LLC/SubZero-Integration/blob/master/TisdelArchDiagram.png "Architecure")
+The based projects would need to call these are necessary.
 

@@ -1,5 +1,37 @@
-﻿// Copyright (c) Vero Software, LLC. All rights reserved.
-
+﻿/*
+ * File: FtpController.cs
+ * Project: IngestSubzeroFiles
+ * Author: Robert LeRoy
+ * Created: April 2023
+ * Last Updated: September 2025
+ * 
+ * Description:
+ * This class is responsible for processing files by retrieving them via FTP or SFTP
+ * and saving them into a local path. It logs the process and handles errors
+ * during file ingestion and parsing.
+ * 
+ * Dependencies:
+ * - log4net for logging
+ * - Renci.SshNet for SFTP operations
+ * - FluentFTP for FTP operations
+ * 
+ * Notes:
+ * - Ensure proper configuration of log4net before using this class.
+ * 
+ * Copyright 2025 Robert LeRoy, Vero Software, LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 using System;
 using System.IO;
 using System.Net;
@@ -51,24 +83,6 @@ namespace IngestSubzeroFiles
 
                     if (size > 0)
                     {
-
-                        //string connectionString = ConfigurationManager.AppSettings["azure-conn"];
-
-                        //// Get a reference to a container named "sample-container" and then create it
-                        //BlobContainerClient container = new BlobContainerClient(connectionString, "source-files");
-                        //try
-                        //{
-                        //    // Read the file from FTP
-                        //    MemoryStream ftpStream = new MemoryStream();
-                        //    conn.DownloadStream(ftpStream, s);
-                        //    ftpStream.Position = 0;
-
-                        //    // Write file to Container
-                        //    BlockBlobClient blockBlob = container.GetBlockBlobClient(filename);
-                        //    blockBlob.Upload(ftpStream);
-
-                        //}
-                        //catch (Exception ex)
 
                         // string connectionString = ConfigurationManager.AppSettings["azure-conn"];
                         string localPath = ConfigurationManager.AppSettings["ftp-file-local-path"];
@@ -126,10 +140,6 @@ namespace IngestSubzeroFiles
             var client = new SftpClient(connectionInfo);
             client.Connect();                
 
-            //conn.Host = ConfigurationManager.AppSettings["ftp-site"];
-            //conn.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ftp-username"], ConfigurationManager.AppSettings["ftp-password"]);
-            //conn.Connect();
-
 			foreach (var s in client.ListDirectory(ConfigurationManager.AppSettings["ftp-file-remote-path"]))
 			{
                 // load some information about the object
@@ -138,10 +148,6 @@ namespace IngestSubzeroFiles
                 var modify = s.Attributes.LastWriteTime;
 				var size = isDirectory ? 0 :s.Attributes.Size;
 
-                // Get last segment of string parsed by /
-                //string[] segments = s.Split('/');
-                //string filename = segments[segments.Length - 1];                  
-                    
                 if (size > 0)
                 {
 
@@ -156,10 +162,6 @@ namespace IngestSubzeroFiles
                         MemoryStream ftpStream = new MemoryStream();
                         client.DownloadFile(s.FullName, ftpStream);
                         ftpStream.Position = 0;
-
-                        // Write file to Container
-                        //BlockBlobClient blockBlob = container.GetBlockBlobClient(s.Name);
-                        //blockBlob.Upload(ftpStream);
 
                         // Write file to local path
                         if (localPath != null)
@@ -181,7 +183,7 @@ namespace IngestSubzeroFiles
                     fileCount++;
                     log.Info($"FTP Get: Received file '{s}' to source-files container.");
                     
-                    // TODO: Enable Delete
+                    // Delete after processing
                     client.DeleteFile(s.FullName);
                 }
             }
@@ -191,10 +193,10 @@ namespace IngestSubzeroFiles
         }
 
         /// <summary>
-        /// Retrieves all files from Subzero FTP Site
+        /// Pushes Balance file to Subzero FTP Site
         /// </summary>
-        /// <param></param>
-        /// <returns>Count of Files Received</returns>
+        /// <param>String Builder list of records for pushing to FTP Site.</param>
+        /// <returns></returns>
         public void PutBalanceFiles(StringBuilder strCustBal)
         {
 

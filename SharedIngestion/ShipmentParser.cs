@@ -1,5 +1,36 @@
-﻿// Copyright (c) Vero Software, LLC. All rights reserved.
-
+﻿/*
+ * File: ShipmentParser.cs
+ * Project: IngestSubzeroFiles
+ * Author: Robert LeRoy
+ * Created: April 2023
+ * Last Updated: September 2025
+ * 
+ * Description:
+ * This class is responsible for spliting the shipment files into their individual record types
+ * and adding them to the appropriate SqList database tables.
+ * 
+ * Dependencies:
+ * - log4net for logging
+ * - FileHelpers for parsing fixed-width files
+ * - SqLiteDB for in-memory database operations
+ * 
+ * Notes:
+ * - Ensure proper configuration of log4net before using this class.
+ * 
+ * Copyright 2025 Robert LeRoy, Vero Software, LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 using System;
 using System.IO;
 using log4net;
@@ -20,10 +51,9 @@ namespace IngestSubzeroFiles
         private readonly ApplicationDbContext sqlite = new ApplicationDbContext();
 
         /// <summary>
-        /// Reads the source files from Azure Storage Container and parses them into Azure Tables   
+        /// Constructor for ShipmentParser class.  It initializes the processing date.
         /// </summary>
-        /// <param></param>
-        /// <returns></returns>
+        /// <param name="pd">Processing date to filter files.</param>
         public ShipmentParser(DateTime pd)
         {
             // TODO: replicate this
@@ -32,10 +62,10 @@ namespace IngestSubzeroFiles
         }
 
         /// <summary>
-        /// Retrieves all files from Subzero FTP Site
+        /// Loops through all files in the local path and calls the ParseFile method for each file
         /// </summary>
         /// <param></param>
-        /// <returns>Count of Files Received</returns>
+        /// <returns>1 if successful, 0 if failure</returns>
         public int ParseLocalShipmentFiles()
         {
 
@@ -72,10 +102,9 @@ namespace IngestSubzeroFiles
 
         /// <summary>
         /// Reads the various records from the shipment file.
-        /// Add each record to the appropriate Azure Table
-        /// 
+        /// Add each record to the appropriate SqlList Table
         /// </summary>
-        /// <param></param>
+        /// <param name="fileName">The filename of the local file to process</param>
         /// <returns>Count of Files Received</returns>
         public int ParseFile(string fileName) 
         {
@@ -94,7 +123,6 @@ namespace IngestSubzeroFiles
             // Set the selector to the Subzero Function
             engine.RecordSelector = new RecordTypeSelector(SubzeroSelector);
 
-            // TODO - Can we handle the errors better?
             // Read the file
             Object[] res = null;
             try
@@ -111,20 +139,13 @@ namespace IngestSubzeroFiles
                 log.Error($"Parser:  Error - {e.Message}");
                 return 0;
             }            
-            
-            
-            //var res = engine.ReadFile(fileName);
-
+                       
             // For each record, add it to the appropriate Azure Table
             foreach (dynamic rec in res)
                 try
                 {
 
-                    //log.Info($"{rec.ToString()}");
-
-                    //Azure SDK requires it to be UTC.
                     rec.ConvertToUTC();
-                    //rec.RowKey = rec.GetRowKey();
 
                     switch (rec.GetType().Name) 
                     {
@@ -168,8 +189,7 @@ namespace IngestSubzeroFiles
         }
 
         /// <summary>
-        /// Selector to determine whether we have a master or
-        /// detail record to import
+        /// Selector to determine type of record to import
         /// </summary>
         /// <param name="record">Alpha characters coming in</param>
         /// <returns>Selector for master or detail record</returns>

@@ -88,6 +88,7 @@ public class SzShipmentDetail : SzBase
     [FieldNullValue(0)]
     public int SHPMTNBR { get; set; }
     [FieldConverter(typeof(SZDateConverter))]
+    [FieldNullValue(typeof(DateTime), "2025-09-01")]
     public DateTime SHPMTDATE { get; set; }
     [FieldConverter(typeof(SZTimeConverter))]
     public DateTime SHPMTTIME { get; set; }

@@ -94,7 +94,7 @@ public class SzItemMaster : SzBase
     public string ITMMDLGRP { get; set; }   // Item Model Group
     public int? ROWNBR{ get; set; }         // Row Number
     public string ROWACT{ get; set; }       // Row Action
-    [FieldNullValue(typeof(DateTime), "1900-01-01")]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime TIMEADD{ get; set; }    // TimeStamp of when the record was added
 

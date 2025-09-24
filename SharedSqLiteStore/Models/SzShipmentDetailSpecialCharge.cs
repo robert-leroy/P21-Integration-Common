@@ -57,7 +57,7 @@ public class SzShipmentDetailSpecialCharge : SzBase
     public string TAXID { get; set; }
     public int? ROWNBR { get; set; }
     public string ROWACT { get; set; }
-    [FieldNullValue(typeof(DateTime), "1900-01-01")]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime TIMEADD { get; set; }
 

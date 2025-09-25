@@ -48,7 +48,7 @@ public class SzShipmentHeader : SzBase
     public string INVTYP { get; set; }
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime INVDT { get; set; }
-    [FieldNullValue(typeof(DateTime), "2025-09-01")]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime NETDUEDT { get; set; }
     public string TRMCD { get; set; }
@@ -136,6 +136,7 @@ public class SzShipmentHeader : SzBase
     public string TERRDESC { get; set; }
     public string HDRTXSFX { get; set; }
     [FieldConverter(typeof(SZDateConverter))]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     public DateTime ORDDT { get; set; }
     [FieldNullValue(0.0)]
     public double TOTITMAMT { get; set; }
@@ -165,7 +166,7 @@ public class SzShipmentHeader : SzBase
     public double TOTINVAMT { get; set; }
     public int? ROWNBR { get; set; }
     public string ROWACT { get; set; }
-    [FieldNullValue(typeof(DateTime), "2025-09-01")]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime TIMEADD { get; set; }
 

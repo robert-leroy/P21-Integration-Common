@@ -88,6 +88,7 @@ public class SzShipmentDetail : SzBase
     [FieldNullValue(0)]
     public int SHPMTNBR { get; set; }
     [FieldConverter(typeof(SZDateConverter))]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     public DateTime SHPMTDATE { get; set; }
     [FieldConverter(typeof(SZTimeConverter))]
     public DateTime SHPMTTIME { get; set; }
@@ -101,7 +102,7 @@ public class SzShipmentDetail : SzBase
     [FieldNullValue(0)]
     public int? ROWNBR { get; set; }
     public string ROWACT { get; set; }
-    [FieldNullValue(typeof(DateTime), "1900-01-01")]
+    [FieldNullValue(typeof(DateTime), "2000-01-01")]
     [FieldConverter(typeof(SZDateConverter))]
     public DateTime TIMEADD { get; set; }
 

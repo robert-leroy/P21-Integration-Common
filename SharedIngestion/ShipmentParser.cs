@@ -150,7 +150,7 @@ namespace IngestSubzeroFiles
                     switch (rec.GetType().Name) 
                     {
                         case "SzShipmentHeader":
-                            log.Debug($"Parser: {rec.ToString()}");
+                            log.Info($"Parser: {rec.ToString()}");
                             sqlite.SzShipmentHeaders.Add(rec);
                             break;
                         case "SzShipmentDetail":

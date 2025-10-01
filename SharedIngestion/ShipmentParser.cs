@@ -40,6 +40,7 @@ using FileHelpers;
 using log4net.Util;
 using System.Configuration;
 using SqLiteDB;
+using System.Data.Entity.Validation;
 
 namespace IngestSubzeroFiles
 {
@@ -162,7 +163,7 @@ namespace IngestSubzeroFiles
                         case "SzShipmentSerial":
                             SzShipmentSerial s = (SzShipmentSerial)rec;
                             s.SRLNBR.Trim();
-                            sqlite.SzShipmentSerials.Add(rec);
+                            sqlite.SzShipmentSerials.Add(s);
                             break;
                         case "SzShipmentHeaderSpecialCharge":
                             sqlite.SzShipmentHeaderSpecialCharges.Add(rec);
@@ -171,7 +172,11 @@ namespace IngestSubzeroFiles
                             sqlite.SzShipmentDetailSpecialCharges.Add(rec);
                             break;
                         case "SzShipmentDetailComment":
-                            sqlite.SzShipmentDetailComments.Add(rec);
+                            // The vendor doesn't send CMTSEQ, so we will generate one here
+                            // I'm using Miliseconds, which should be unique enough for our purposes
+                            SzShipmentDetailComment c = (SzShipmentDetailComment)rec;
+                            c.CMTSEQ = DateTime.Now.Millisecond;
+                            sqlite.SzShipmentDetailComments.Add(c);
                             break;
                         case "SzItemMaster":
                             sqlite.SzItemMasters.Add(rec);
@@ -183,7 +188,19 @@ namespace IngestSubzeroFiles
                     log.Info($"Parsesr:  Error - {e.Message}");
                     return 0;
                 }
-            sqlite.SaveChanges();
+            try
+            {
+                sqlite.SaveChanges();
+            }
+            catch (DbEntityValidationException dbe)
+            {
+                foreach (DbEntityValidationResult ve in dbe.EntityValidationErrors)
+                    foreach (DbValidationError err in ve.ValidationErrors)
+                        log.Error($"Parser:  Property: {ve.Entry.Entity} Error: {err.ErrorMessage}");
+
+                log.Error($"Parser:  Error saving shipments to database.  Processing aborted.");
+                return 0;
+            }
             return 1;
 
         }

@@ -173,7 +173,7 @@ namespace IngestSubzeroFiles
                             break;
                         case "SzShipmentDetailComment":
                             // RJL 10/01/2025  
-                            // The vendor doesn't send CMTSEQ, so we will generate one here
+                            // The vendor doesn't send CMTSEQ, so we will generate one here 
                             // I'm using Miliseconds, which should be unique enough for our purposes
                             SzShipmentDetailComment c = (SzShipmentDetailComment)rec;
                             c.CMTSEQ = DateTime.Now.Millisecond;

@@ -41,6 +41,7 @@ using log4net.Util;
 using System.Configuration;
 using SqLiteDB;
 using System.Data.Entity.Validation;
+using System.Data.Entity.Infrastructure;
 
 namespace IngestSubzeroFiles
 {
@@ -80,7 +81,11 @@ namespace IngestSubzeroFiles
             string[] files = Directory.GetFiles(localPath);
             foreach (string file in files)
             {
-                if (file.Contains(processingDate.ToString("yyyyMMdd")))
+                // only process files that contain the processing date in the filename
+                // or the last write date is the processing date
+                // and the name is SZ_Shipment or SZ_ItemMstr
+                if ((file.Contains(processingDate.ToString("yyyyMMdd")) || File.GetLastWriteTime(file).Date == processingDate.Date) 
+                    && (file.Contains("SZ_Shipment_") || file.Contains("SZ_ItemMstr")))
                 {
                     try
                     {
@@ -202,6 +207,13 @@ namespace IngestSubzeroFiles
                 log.Error($"Parser:  Error saving shipments to database.  Processing aborted.");
                 return 0;
             }
+            catch (DbUpdateException dbe)
+            {
+                log.Error($"Parser: {dbe.InnerException.InnerException.Message}");
+                log.Error($"Parser:  Error saving shipments to database.  Processing aborted.");
+                return 0;
+            }
+
             return 1;
 
         }

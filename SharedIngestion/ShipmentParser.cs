@@ -258,6 +258,52 @@ namespace IngestSubzeroFiles
                     return null;
             }
         }
-	}
+
+        /// <summary>
+        /// Confirm each header has detail lines.  If not,we delete the header record, log the error, and continue
+        /// </summary>
+        /// <param name="subzeroPartnerID">The Subzero Partner ID to check</param>
+        public int ValidateDetailLines(string subzeroPartnerID)
+        {
+            int returnCode = 1;
+
+            // Get the headers
+            IList<SzShipmentHeader> headers = sqlite.SzShipmentHeaders
+                                                    .Where(h => h.SZPTRID == subzeroPartnerID && h.INVTYP == "IV")
+                                                    .ToList();
+
+            foreach (SzShipmentHeader header in headers)
+            {
+                // Get the headers
+                IList<SzShipmentDetail> details = sqlite.SzShipmentDetails
+                                                        .Where(d => d.SZPTRID == subzeroPartnerID && d.INVNBR == header.INVNBR)
+                                                        .ToList();
+
+                if (details.Count == 0)
+                {
+                    log.Error($"Parser:  Shipment Header INVNBR {header.INVNBR} for Customer {header.PTRCUSID} with PO {header.PONBR} has no associated detail records.");
+
+                    // Delete the header record
+                    sqlite.SzShipmentHeaders.Remove(header);
+                    sqlite.SaveChanges();
+
+                    // Log the error and continue
+                    sqlite.SzErrorMessage.Add(new SzErrorMessage()
+                    {
+                        MODULE = "Parser",
+                        INVNBR = header.INVNBR,
+                        SISMMSG = $"Shipment Header INVNBR {header.INVNBR} for Customer {header.PTRCUSID} with PO {header.PONBR} has no associated detail records.",
+                        TIMEADD = DateTime.Now
+                    });
+                    sqlite.SaveChanges();
+
+                    returnCode = 0;
+
+                }
+            }
+
+            return returnCode;
+        }
+    }
 }
 

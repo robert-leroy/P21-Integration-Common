@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzShipmentDetailComments table structure.
+ * Subzero sends these as record type "S3".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

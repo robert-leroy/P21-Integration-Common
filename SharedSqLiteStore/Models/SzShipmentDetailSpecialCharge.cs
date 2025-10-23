@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzShipmentDetailSpecialCharges table structure.
+ * Subzero sends these as record type "S4".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

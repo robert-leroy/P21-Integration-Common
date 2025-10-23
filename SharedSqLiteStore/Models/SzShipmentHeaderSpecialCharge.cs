@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzShipmentHeaderSpecialCharges table structure.
+ * Subzero sends these as record type "SS".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

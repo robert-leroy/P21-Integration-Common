@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzShipmentDetail table structure.
+ * Subzero sends these as record type "SD".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

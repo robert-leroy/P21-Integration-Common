@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzShipmenSerial table structure.
+ * Subzero sends these as record type "S2".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

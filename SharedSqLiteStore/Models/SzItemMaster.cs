@@ -7,6 +7,7 @@
  * 
  * Description:
  * This class is responsible defining the SzItemMaster table structure.
+ * Subzero sends these as record type "IM".
  * 
  * Dependencies:
  * - SqLiteDB for in-memory database operations

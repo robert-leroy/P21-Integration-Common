@@ -85,7 +85,7 @@ namespace IngestSubzeroFiles
                     {
 
                         // string connectionString = ConfigurationManager.AppSettings["azure-conn"];
-                        string localPath = ConfigurationManager.AppSettings["ftp-file-local-path"];
+                        string tempPath = ConfigurationManager.AppSettings["ftp-file-temp-path"];
 
                         try
                         {
@@ -96,9 +96,9 @@ namespace IngestSubzeroFiles
 
 
                             // Write file to local path
-                            if (localPath != null)
+                            if (tempPath != null)
                             {
-                                using (FileStream fileStream = File.Create(localPath + filename))
+                                using (FileStream fileStream = File.Create(tempPath + filename))
                                 {
                                     ftpStream.Position = 0;
                                     ftpStream.CopyTo(fileStream);
@@ -152,7 +152,7 @@ namespace IngestSubzeroFiles
                 {
 
                     // string connectionString = ConfigurationManager.AppSettings["azure-conn"];
-                    string localPath = ConfigurationManager.AppSettings["ftp-file-local-path"];
+                    string tempPath = ConfigurationManager.AppSettings["ftp-file-temp-path"];
 
                     // Get a reference to a container named "sample-container" and then create it
                     //BlobContainerClient container = new BlobContainerClient(connectionString, "source-files");
@@ -164,9 +164,9 @@ namespace IngestSubzeroFiles
                         ftpStream.Position = 0;
 
                         // Write file to local path
-                        if (localPath != null)
+                        if (tempPath != null)
                         {
-                            using (FileStream fileStream = File.Create(localPath + s.Name))
+                            using (FileStream fileStream = File.Create(tempPath + s.Name))
                             {
                                 ftpStream.Position = 0;
                                 ftpStream.CopyTo(fileStream);

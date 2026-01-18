@@ -71,20 +71,26 @@ namespace IngestSubzeroFiles
         public int ParseLocalShipmentFiles()
         {
 
+            string tempPath = ConfigurationManager.AppSettings["ftp-file-temp-path"];
             string localPath = ConfigurationManager.AppSettings["ftp-file-local-path"];
+            if (!Directory.Exists(tempPath))
+            {
+                Console.WriteLine($"Temp Directory {tempPath} does not exist.");
+                return 0;
+            }
             if (!Directory.Exists(localPath))
             {
-                Console.WriteLine($"Directory {localPath} does not exist.");
+                Console.WriteLine($"Local Directory {localPath} does not exist.");
                 return 0;
             }
 
-            string[] files = Directory.GetFiles(localPath);
+            string[] files = Directory.GetFiles(tempPath);
             foreach (string file in files)
             {
                 // only process files that contain the processing date in the filename
                 // or the last write date is the processing date
                 // and the name is SZ_Shipment or SZ_ItemMstr
-                if ((file.Contains(processingDate.ToString("yyyyMMdd")) || File.GetLastWriteTime(file).Date == processingDate.Date) 
+                if ((file.Contains(processingDate.ToString("yyyyMMdd")) || File.GetLastWriteTime(file).Date == processingDate.Date)
                     && (file.Contains("SZ_Shipment_") || file.Contains("SZ_ItemMstr")))
                 {
                     try
@@ -99,6 +105,21 @@ namespace IngestSubzeroFiles
                     {
                         log.Info($"Error processing file {file}: {ex.Message}.");
                     }
+                }
+                // Move file from temp-path to local-path
+                string destinationFile = Path.Combine(localPath, Path.GetFileName(file));
+                try
+                {
+                    if (File.Exists(destinationFile))
+                    {
+                        File.Delete(destinationFile); // Delete the existing file
+                    }
+                    File.Move(file, destinationFile);
+                    log.Debug($"Parser: Moved file {file} to {destinationFile}.");
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Parser: Failed to move file {file} to {destinationFile}. Error: {ex.Message}");
                 }
             }
 

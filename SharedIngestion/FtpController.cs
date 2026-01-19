@@ -138,7 +138,16 @@ namespace IngestSubzeroFiles
                                     ConfigurationManager.AppSettings["ftp-username"],
                                     new PasswordAuthenticationMethod(ConfigurationManager.AppSettings["ftp-username"], ConfigurationManager.AppSettings["ftp-password"]));
             var client = new SftpClient(connectionInfo);
-            client.Connect();                
+
+            try 
+            {
+                client.Connect();
+            }
+            catch (Exception ex)
+            {
+                log.Error($"SFTP Get: Error connecting to SFTP site. {ex.Message}");
+                return 0;
+            }
 
 			foreach (var s in client.ListDirectory(ConfigurationManager.AppSettings["ftp-file-remote-path"]))
 			{

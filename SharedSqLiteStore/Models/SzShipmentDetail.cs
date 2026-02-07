@@ -120,7 +120,7 @@ public class SzShipmentDetail : SzBase
 
     public override string ToString()
     {
-        return String.Format("Detail | SZPTRID: {0} - INVNBR: {1} - INVSEQ: {2} - INVDTLSEQ: {3}", SZPTRID, INVNBR, INVSEQ, INVDTLSEQ);
+        return String.Format("Detail | ITMNBR: {0} - INVNBR: {1} - INVSEQ: {2} - INVDTLSEQ: {3}", ITMNBR, INVNBR, INVSEQ, INVDTLSEQ);
     }
 }
 

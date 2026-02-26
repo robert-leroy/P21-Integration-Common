@@ -52,12 +52,16 @@ namespace IngestSubzeroFiles
         {
         }       
 
-        public int IngestFiles(DateTime pd)
+        public int IngestFiles(DateTime pd, bool noFtp)
         {
-            // Get New FTP Files
-            var f = new FTPController();
-            int fileCount = f.SshShipmentFiles();
-            log.Info($"FileProcessor: Completed FTP. {fileCount} file(s) received.");
+            int fileCount = 0;
+            if (noFtp == false)
+            {
+                // Get New FTP Files
+                var f = new FTPController();
+                fileCount = f.SshShipmentFiles();
+                log.Info($"FileProcessor: Completed FTP. {fileCount} file(s) received.");
+            }
 
             // Parse Files into in-memory SqLite DB tables
             var p = new ShipmentParser(pd);

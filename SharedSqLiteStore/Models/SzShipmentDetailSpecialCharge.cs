@@ -27,6 +27,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * S4|ID05|1003484|100359|90305138||20||FR|800|FREIGHT||258.66||||2026-02-23 09:17:12.7874752
  */
 using System;
 using System.ComponentModel.DataAnnotations;

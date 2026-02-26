@@ -134,11 +134,13 @@ namespace IngestSubzeroFiles
 
             int fileCount = 0;
             
-            var connectionInfo = new ConnectionInfo(ConfigurationManager.AppSettings["ftp-site"],
-                                    ConfigurationManager.AppSettings["ftp-username"],
-                                    new PasswordAuthenticationMethod(ConfigurationManager.AppSettings["ftp-username"], ConfigurationManager.AppSettings["ftp-password"]));
+            var connectionInfo = new ConnectionInfo(
+                                        ConfigurationManager.AppSettings["ftp-site"],
+                                        ConfigurationManager.AppSettings["ftp-username"],
+                                    new PasswordAuthenticationMethod(
+                                        ConfigurationManager.AppSettings["ftp-username"], 
+                                        ConfigurationManager.AppSettings["ftp-password"]));
             var client = new SftpClient(connectionInfo);
-
             try 
             {
                 client.Connect();

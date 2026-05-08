@@ -271,8 +271,9 @@ namespace IngestSubzeroFiles
                 case "S4":
                     return typeof(SzShipmentDetailSpecialCharge);
                 // RJL - 09/12/2025 - Ignore these SS records per Ashley
-                //case "SS":
-                //    return null;
+                // RJL - 05/08/2026 - Well Ashley was wrong.  These records are now coming through.  Grrrr!!!
+                case "SS":
+                    return typeof(SzShipmentHeaderSpecialCharge);
                 case "IM":
                     return typeof(SzItemMaster);
                 default:

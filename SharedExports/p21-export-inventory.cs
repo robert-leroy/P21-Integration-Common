@@ -47,7 +47,7 @@ namespace P21Integration
         /// Main export method that exports inventory adjustment data to tab-delimited files.
         /// Creates four files split by TERRCD: _150 (TERRCD==22) and _350 (TERRCD==150).
         /// </summary>
-        public int ExportAllData(string partnerId)
+        public int ExportAllData(string partnerId) 
         {
             try
             {

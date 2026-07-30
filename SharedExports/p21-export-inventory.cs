@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using static System.Runtime.CompilerServices.RuntimeHelpers;
 
@@ -25,7 +26,6 @@ namespace P21Integration
         public ExportInventory(DateTime pd)
         {
             exportDate = pd;
-            // Get export path from config, default to current directory if not specified
             exportPath = ConfigurationManager.AppSettings["export-path"] ?? @".\Exports";
 
             string connectionString = ConfigurationManager.AppSettings["sql-conn"];
@@ -39,32 +39,40 @@ namespace P21Integration
                 log.Error($"Export Inventory: Cannot open connection! Error: {ex.Message}");
             }
 
-            // Create export directory if it doesn't exist
             if (!Directory.Exists(exportPath))
-            {
                 Directory.CreateDirectory(exportPath);
-            }
         }
 
         /// <summary>
-        /// Main export method that exports inventory adjustment data to tab-delimited files
+        /// Main export method that exports inventory adjustment data to tab-delimited files.
+        /// Creates four files split by TERRCD: _150 (TERRCD==22) and _350 (TERRCD==150).
         /// </summary>
-        public int ExportAllData()
+        public int ExportAllData(string partnerId)
         {
             try
             {
                 log.Info($"Export Inventory: Starting data export for {exportDate:yyyy-MM-dd}");
 
-                // Delete existing files for the export date if they exist
-                string itemFileName = Path.Combine(exportPath, $"inventoryadjustmentitem_{exportDate:yyyyMMdd}.txt");
-                if (File.Exists(itemFileName))
-                    File.Delete(itemFileName);
+                string[] sfxList;
 
-                string serialFileName = Path.Combine(exportPath, $"inventoryadjustmentserial_{exportDate:yyyyMMdd}.txt");
-                if (File.Exists(serialFileName))
-                    File.Delete(serialFileName);
+                if (partnerId == "ID04")
+                {
+                    sfxList = new[] { "10", "10224" };
+                }
+                else
+                {  
+                    sfxList = new[] { "150", "350" }; 
+                }
+                
+                foreach (string suffix in sfxList)
+                    {
+                        string itemFile = GetItemFileName(suffix);
+                        string serialFile = GetSerialFileName(suffix);
 
-                // Get all inventory detail records (SZPTRID = "ID05" for inventory adjustments)
+                        if (File.Exists(itemFile)) File.Delete(itemFile);
+                        if (File.Exists(serialFile)) File.Delete(serialFile);
+                    }
+
                 var inventoryDetails = sqlite.SzShipmentDetails
                     .OrderBy(d => d.INVNBR)
                     .ThenBy(d => d.INVDTLSEQ)
@@ -73,15 +81,37 @@ namespace P21Integration
                 log.Info($"Export Inventory: Found {inventoryDetails.Count} inventory detail records");
 
                 int importSet = 0;
-                int currentInvoice = 0;
 
                 foreach (var detail in inventoryDetails)
                 {
                     importSet++;
 
-                    // Export item record
-                    ExportInventoryItem(importSet, detail);
+                    // Get header to determine TERRCD
+                    var header = sqlite.SzShipmentHeaders
+                        .FirstOrDefault(h => h.INVNBR == detail.INVNBR);
 
+                    if (header == null)
+                    {
+                        log.Warn($"Export Inventory: No header found for INVNBR {detail.INVNBR}, skipping.");
+                        continue;
+                    }
+
+                    // Determine file suffix based on TERRCD
+                    string locationSuffix;
+                    if (header.SZPTRID == "ID04")
+                    {
+                        // For SZPTRID == ID04, determine location from warehouse
+                        if (detail.WHS == "IL01")
+                            locationSuffix = "10"; // IL01 maps to 10
+                        else
+                            locationSuffix = "10224"; // Other warehouses map to 10224
+                    }
+                    else
+                    {
+                        locationSuffix = (header.TERRCD == 22) ? "150" : "350";
+                    }
+
+                    ExportInventoryItem(importSet, detail, header, locationSuffix);
                 }
 
                 log.Info($"Export Inventory: Completed successfully. {ExportedItemCount} items, {ExportedSerialCount} serials exported");
@@ -95,16 +125,14 @@ namespace P21Integration
         }
 
         /// <summary>
-        /// Export inventory adjustment item to tab-delimited file
-        /// Columns based on P21 Inventory Adjustment Import format
+        /// Export inventory adjustment item to the appropriate tab-delimited file based on location suffix.
         /// </summary>
-        private void ExportInventoryItem(int importSet, SzShipmentDetail detail)
+        private void ExportInventoryItem(int importSet, SzShipmentDetail detail, SzShipmentHeader header, string locationSuffix)
         {
-            string fileName = Path.Combine(exportPath, $"inventoryadjustmentitem_{exportDate:yyyyMMdd}.txt");
+            string fileName = GetItemFileName(locationSuffix);
 
             try
             {
-                // Get the item model/ID from P21
                 string itemId = P21Udf.GetItemModel(cnnSQL, detail.ITMMDL, detail.ITMNBR, "", "", "");
 
                 if (string.IsNullOrWhiteSpace(itemId))
@@ -113,11 +141,6 @@ namespace P21Integration
                     return;
                 }
 
-                // Get header information for additional context
-                var header = sqlite.SzShipmentHeaders
-                    .FirstOrDefault(h => h.INVNBR == detail.INVNBR);
-
-                // Determine location ID from warehouse
                 int locationId = 0;
                 if (detail.SZPTRID == "ID04")
                     locationId = GetLocationIdFromWarehouse(detail.WHS);
@@ -126,23 +149,20 @@ namespace P21Integration
 
                 using (StreamWriter writer = new StreamWriter(fileName, true, Encoding.UTF8))
                 {
-                    // Write data row - columns per P21 import spec
                     writer.WriteLine(string.Join("\t", new string[] {
-                        importSet.ToString(),           // Import Set Number
-                        itemId,                         // Item ID
-                        detail.SHPQTY.ToString("F4"),   // Unit Quantity (positive for increase, negative for decrease)
-                        "",                             // Adjustment amount
-                        CleanValue(detail.ORDUOM),      // Order Unit of Measure
-                        detail.UNTCST.ToString("F4"),   // Unit Cost (optional)
-                        ""                              // Not used
+                        importSet.ToString(),
+                        itemId,
+                        detail.SHPQTY.ToString("F4"),
+                        "",
+                        CleanValue(detail.ORDUOM),
+                        detail.UNTCST.ToString("F4"),
+                        ""
                     }));
 
                     ExportedItemCount++;
                 }
 
-                // Export serial numbers for this item
-                ExportInventorySerials(importSet, detail);
-
+                ExportInventorySerials(importSet, detail, locationSuffix);
             }
             catch (Exception ex)
             {
@@ -152,15 +172,14 @@ namespace P21Integration
         }
 
         /// <summary>
-        /// Export inventory adjustment serial numbers to tab-delimited file
+        /// Export inventory adjustment serial numbers to the appropriate tab-delimited file based on location suffix.
         /// </summary>
-        private void ExportInventorySerials(int importSet, SzShipmentDetail detail)
+        private void ExportInventorySerials(int importSet, SzShipmentDetail detail, string locationSuffix)
         {
-            string fileName = Path.Combine(exportPath, $"inventoryadjustmentserial_{exportDate:yyyyMMdd}.txt");
+            string fileName = GetSerialFileName(locationSuffix);
 
             try
-            {   
-                // Get serial numbers for this detail line
+            {
                 var serials = sqlite.SzShipmentSerials
                     .Where(s => s.INVNBR == detail.INVNBR &&
                                s.INVSEQ == detail.INVSEQ &&
@@ -171,7 +190,6 @@ namespace P21Integration
                 if (!serials.Any())
                     return;
 
-                // Get the item model/ID from P21
                 string itemId = P21Udf.GetItemModel(cnnSQL, detail.ITMMDL, detail.ITMNBR, "", "", "");
 
                 if (string.IsNullOrWhiteSpace(itemId))
@@ -184,11 +202,10 @@ namespace P21Integration
                 {
                     foreach (var serial in serials)
                     {
-                        // Write serial record - columns per P21 import spec
                         writer.WriteLine(string.Join("\t", new string[] {
-                            importSet.ToString(),               // Import Set Number
-                            itemId,                             // Item ID (must match item record)
-                            CleanValue(serial.SRLNBR?.Trim()),  // Serial Number
+                            importSet.ToString(),
+                            itemId,
+                            CleanValue(serial.SRLNBR?.Trim()),
                             "",
                             "",
                             "",
@@ -205,6 +222,22 @@ namespace P21Integration
                 log.Error($"Export Inventory: Error exporting serials - {ex.Message}", ex);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Returns the item file name for the given location suffix (150 or 350).
+        /// </summary>
+        private string GetItemFileName(string locationSuffix)
+        {
+            return Path.Combine(exportPath, $"inventoryadjustmentitem_{exportDate:yyyyMMdd}_{locationSuffix}.txt");
+        }
+
+        /// <summary>
+        /// Returns the serial file name for the given location suffix (150 or 350).
+        /// </summary>
+        private string GetSerialFileName(string locationSuffix)
+        {
+            return Path.Combine(exportPath, $"inventoryadjustmentserial_{exportDate:yyyyMMdd}_{locationSuffix}.txt");
         }
 
         /// <summary>
@@ -226,7 +259,6 @@ namespace P21Integration
             if (string.IsNullOrWhiteSpace(value))
                 return "";
 
-            // Remove tabs, newlines, and special characters that could break tab-delimited format
             return value.Replace("\t", " ")
                        .Replace("\r", " ")
                        .Replace("\n", " ")

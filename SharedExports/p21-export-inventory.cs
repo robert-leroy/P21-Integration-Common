@@ -98,7 +98,7 @@ namespace P21Integration
 
                     // Determine file suffix based on TERRCD
                     string locationSuffix;
-                    if (header.SZPTRID == "ID04")
+                    if (partnerId == "ID04")
                     {
                         // For SZPTRID == ID04, determine location from warehouse
                         if (detail.WHS == "IL01")

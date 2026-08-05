@@ -74,6 +74,7 @@ namespace P21Integration
                     }
 
                 var inventoryDetails = sqlite.SzShipmentDetails
+                    .Where(d => d.SZPTRID == partnerId)
                     .OrderBy(d => d.INVNBR)
                     .ThenBy(d => d.INVDTLSEQ)
                     .ToList();
@@ -93,6 +94,19 @@ namespace P21Integration
                     if (header == null)
                     {
                         log.Warn($"Export Inventory: No header found for INVNBR {detail.INVNBR}, skipping.");
+                        continue;
+                    }
+
+
+                    if (header.INVTYP == "CM")
+                    {
+                        log.Info($"SOM INV: Skipping CM {detail.INVNBR} Item {detail.ITMMDL}");
+                        continue;
+                    }
+
+                    if (detail.WHS != "IL01")
+                    {
+                        log.Info($"SOM INV: Skipping Invoice {detail.INVNBR} Item {detail.ITMMDL} because warehouse is set to {detail.WHS}");
                         continue;
                     }
 
@@ -147,6 +161,9 @@ namespace P21Integration
                 else
                     locationId = (header.TERRCD == 22) ? 150 : 350;
 
+                double unitCost = GetItemCost(itemId, header.STSTATE);
+                unitCost = Math.Round(unitCost, 3);
+
                 using (StreamWriter writer = new StreamWriter(fileName, true, Encoding.UTF8))
                 {
                     writer.WriteLine(string.Join("\t", new string[] {
@@ -155,7 +172,7 @@ namespace P21Integration
                         detail.SHPQTY.ToString("F4"),
                         "",
                         CleanValue(detail.ORDUOM),
-                        detail.UNTCST.ToString("F4"),
+                        unitCost.ToString("F4"),
                         ""
                     }));
 
@@ -266,6 +283,29 @@ namespace P21Integration
                        .Replace("`", "")
                        .Replace("~", "")
                        .Trim();
+        }
+
+
+        double GetItemCost(string itemModel, string stateCode)
+        {
+
+            // Query multiple first item from AP
+            // This assumes the cost is the same for all items
+            SzShipmentDetail sd = sqlite.SzShipmentDetails
+                                        .Where(d => d.ITMMDL == itemModel && d.SZCUSID == "BPID04")
+                                        .FirstOrDefault();
+
+            double Cost = 0;
+
+            if (sd != null)
+                Cost = sd.SLGPRC / sd.SHPQTY;
+
+            if (Cost == 0)
+            {
+                Cost = P21Udf.GetCost(cnnSQL, itemModel);
+            }
+
+            return Cost;
         }
     }
 }

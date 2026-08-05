@@ -299,11 +299,9 @@ namespace P21Integration
 
             if (sd != null)
                 Cost = sd.SLGPRC / sd.SHPQTY;
+            else
 
-            if (Cost == 0)
-            {
                 Cost = P21Udf.GetCost(cnnSQL, itemModel);
-            }
 
             return Cost;
         }

@@ -97,17 +97,32 @@ namespace P21Integration
                         continue;
                     }
 
-
-                    if (header.INVTYP == "CM")
+                    if (partnerId == "ID05")
                     {
-                        log.Info($"SOM INV: Skipping CM {detail.INVNBR} Item {detail.ITMMDL}");
-                        continue;
+                        // KSS 06/15/2023 Select those items where WHS != 'MID' or (WHS = 'MID' and CRDRSN NOT IN ('', '314')) -- 314 is 'Misc Return'
+                        // Usually I'm not a fan of continue statements, but this is a good use case
+                        if ((detail.WHS != "MID") || ((detail.WHS == "MID") && ((detail.CRDRSN != "") && (detail.CRDRSN != "314"))))
+                        {
+                            // Include these rows
+                            // Jump to header logic below
+                        }
+                        else
+                        { continue; }
                     }
 
-                    if (detail.WHS != "IL01")
-                    {
-                        log.Info($"SOM INV: Skipping Invoice {detail.INVNBR} Item {detail.ITMMDL} because warehouse is set to {detail.WHS}");
-                        continue;
+                    if (partnerId == "ID04")
+                    { 
+                        if (header.INVTYP == "CM")
+                        {
+                            log.Info($"SOM INV: Skipping CM {detail.INVNBR} Item {detail.ITMMDL}");
+                            continue;
+                        }
+
+                        if (detail.WHS != "IL01")
+                        {
+                            log.Info($"SOM INV: Skipping Invoice {detail.INVNBR} Item {detail.ITMMDL} because warehouse is set to {detail.WHS}");
+                            continue;
+                        }
                     }
 
                     // Determine file suffix based on TERRCD
@@ -300,7 +315,6 @@ namespace P21Integration
             if (sd != null)
                 Cost = sd.SLGPRC / sd.SHPQTY;
             else
-
                 Cost = P21Udf.GetCost(cnnSQL, itemModel);
 
             return Cost;
